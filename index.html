@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LIQUID STORE</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #060608;
+  --surface: #0e0e12;
+  --border: #1a1a22;
+  --accent: #00e5ff;
+  --accent2: #ff2d6b;
+  --text: #eeeef2;
+  --muted: #555566;
+  --green: #00ffaa;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Syne',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:1000;opacity:0.4;
+}
+
+body::after{
+  content:'';
+  position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,229,255,0.03) 1px,transparent 1px);
+  background-size:60px 60px;
+  pointer-events:none;z-index:0;
+}
+
+nav{
+  position:sticky;top:0;z-index:900;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;
+  height:64px;
+  background:rgba(6,6,8,0.85);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.nav-brand{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:28px;
+  letter-spacing:6px;
+  background:linear-gradient(135deg,#fff 0%,var(--accent) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.cart-btn{
+  display:flex;align-items:center;gap:10px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:50px;
+  padding:8px 20px;
+  cursor:pointer;
+  font-family:'Syne',sans-serif;
+  font-size:14px;font-weight:600;
+  color:var(--text);
+  transition:all 0.2s;
+}
+.cart-btn:hover{border-color:var(--accent);color:var(--accent);}
+.cart-count{
+  background:var(--accent2);
+  color:#fff;
+  font-size:11px;
+  font-weight:700;
+  width:20px;height:20px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform 0.2s;
+}
+.cart-count.bump{transform:scale(1.4);}
+
+.hero{
+  position:relative;z-index:1;
+  text-align:center;
+  padding:80px 24px 60px;
+  overflow:hidden;
+}
+.hero-glow{
+  position:absolute;
+  width:600px;height:600px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(0,229,255,0.08) 0%,transparent 70%);
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+}
+.hero h1{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(56px,10vw,110px);
+  letter-spacing:8px;
+  line-height:0.9;
+  background:linear-gradient(180deg,#ffffff 0%,rgba(0,229,255,0.7) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero-sub{
+  font-size:12px;
+  letter-spacing:6px;
+  color:var(--muted);
+  text-transform:uppercase;
+  margin-top:16px;
+}
+.hero-stats{
+  display:flex;justify-content:center;gap:48px;
+  margin-top:40px;
+  flex-wrap:wrap;
+}
+.stat{text-align:center;}
+.stat-val{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:42px;
+  color:var(--accent);
+  text-shadow:0 0 30px rgba(0,229,255,0.5);
+  line-height:1;
+}
+.stat-lbl{
+  font-size:10px;letter-spacing:4px;
+  color:var(--muted);text-transform:uppercase;margin-top:4px;
+}
+
+.products-section{
+  position:relative;z-index:1;
+  max-width:960px;
+  margin:0 auto;
+  padding:0 20px 80px;
+}
+.section-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:13px;
+  letter-spacing:5px;
+  color:var(--muted);
+  text-transform:uppercase;
+  margin-bottom:24px;
+  padding-left:4px;
+}
+.products-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:16px;
+}
+
+.product-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:24px 20px 20px;
+  cursor:pointer;
+  transition:transform 0.2s,border-color 0.2s,box-shadow 0.2s;
+  position:relative;
+  overflow:hidden;
+  display:flex;flex-direction:column;gap:12px;
+}
+.product-card::before{
+  content:'';
+  position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--card-color,var(--accent));
+  box-shadow:0 0 12px var(--card-color,var(--accent));
+  border-radius:3px 0 0 3px;
+}
+.product-card::after{
+  content:'';
+  position:absolute;
+  top:-40px;right:-40px;
+  width:120px;height:120px;
+  border-radius:50%;
+  background:radial-gradient(circle,var(--card-color,var(--accent)) 0%,transparent 70%);
+  opacity:0.06;
+  transition:opacity 0.3s;
+}
+.product-card:hover{
+  transform:translateY(-4px);
+  border-color:var(--card-color,var(--accent));
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);
+}
+.product-card:hover::after{opacity:0.12;}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;}
+.card-icon{font-size:28px;line-height:1;}
+.card-stock{
+  font-size:10px;
+  letter-spacing:2px;
+  color:var(--muted);
+  text-transform:uppercase;
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:3px 10px;
+}
+.card-stock.low{color:#ff8800;border-color:rgba(255,136,0,0.3);}
+.card-stock.out{color:var(--accent2);border-color:rgba(255,45,107,0.3);}
+.card-name{font-size:16px;font-weight:700;line-height:1.2;}
+.card-bottom{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:4px;
+}
+.card-price{display:flex;flex-direction:column;gap:2px;}
+.price-orig{
+  font-family:'DM Mono',monospace;
+  font-size:11px;
+  color:var(--muted);
+  text-decoration:line-through;
+}
+.price-deal{
+  font-family:'DM Mono',monospace;
+  font-size:18px;
+  font-weight:500;
+  color:var(--accent);
+  text-shadow:0 0 10px rgba(0,229,255,0.4);
+}
+.add-btn{
+  background:rgba(0,229,255,0.1);
+  border:1px solid rgba(0,229,255,0.25);
+  border-radius:8px;
+  padding:8px 14px;
+  font-family:'Syne',sans-serif;
+  font-size:12px;font-weight:700;
+  color:var(--accent);
+  cursor:pointer;
+  letter-spacing:1px;
+  transition:all 0.2s;
+}
+.add-btn:hover{background:rgba(0,229,255,0.2);border-color:var(--accent);}
+.add-btn:disabled{
+  background:rgba(255,255,255,0.04);
+  border-color:var(--border);
+  color:var(--muted);
+  cursor:not-allowed;
+}
+
+.overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(8px);
+  z-index:800;
+  display:none;align-items:center;justify-content:center;
+  padding:20px;
+}
+.overlay.active{display:flex;}
+
+.product-modal{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:36px;
+  max-width:440px;width:100%;
+  position:relative;
+  animation:slideUp 0.3s ease;
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.modal-close{
+  position:absolute;top:20px;right:20px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid var(--border);
+  border-radius:50%;
+  width:36px;height:36px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  font-size:18px;color:var(--muted);
+  transition:all 0.2s;
+}
+.modal-close:hover{color:var(--text);border-color:var(--muted);}
+.modal-icon{font-size:48px;margin-bottom:16px;}
+.modal-name{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:32px;
+  letter-spacing:3px;
+  margin-bottom:4px;
+}
+.modal-sub{font-size:12px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;}
+.modal-divider{height:1px;background:var(--border);margin:24px 0;}
+.stock-info{
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:16px;
+  font-size:12px;
+  color:var(--muted);
+  letter-spacing:1px;
+}
+.stock-info span{color:var(--green);font-family:'DM Mono',monospace;}
+.qty-row{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;
+}
+.qty-label{font-size:14px;color:var(--muted);font-weight:600;letter-spacing:2px;text-transform:uppercase;}
+.qty-controls{display:flex;align-items:center;gap:16px;}
+.qty-btn{
+  width:40px;height:40px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border);
+  border-radius:10px;
+  color:var(--text);
+  font-size:20px;font-weight:300;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.15s;
+}
+.qty-btn:hover{border-color:var(--accent);color:var(--accent);}
+.qty-btn:disabled{color:var(--muted);cursor:not-allowed;border-color:var(--border);}
+.qty-display{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:40px;
+  color:var(--accent);
+  min-width:48px;
+  text-align:center;
+  text-shadow:0 0 20px rgba(0,229,255,0.4);
+}
+.modal-price-row{
+  display:flex;justify-content:space-between;align-items:center;
+  background:rgba(0,229,255,0.05);
+  border:1px solid rgba(0,229,255,0.15);
+  border-radius:12px;
+  padding:16px 20px;
+  margin-bottom:20px;
+}
+.mpr-label{font-size:12px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
+.mpr-val{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:28px;
+  color:var(--accent);
+  text-shadow:0 0 15px rgba(0,229,255,0.4);
+}
+.modal-add-btn{
+  width:100%;
+  padding:16px;
+  background:var(--accent);
+  border:none;
+  border-radius:12px;
+  font-family:'Syne',sans-serif;
+  font-size:15px;font-weight:800;
+  color:#000;
+  cursor:pointer;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  transition:all 0.2s;
+  box-shadow:0 4px 24px rgba(0,229,255,0.3);
+}
+.modal-add-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,229,255,0.4);}
+
+.cart-panel{
+  position:fixed;
+  right:-480px;top:0;bottom:0;
+  width:100%;max-width:460px;
+  background:var(--surface);
+  border-left:1px solid var(--border);
+  z-index:950;
+  transition:right 0.35s cubic-bezier(0.4,0,0.2,1);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+.cart-panel.open{right:0;}
+.cart-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:24px 28px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.cart-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:24px;letter-spacing:4px;
+  color:var(--text);
+}
+.cart-close{
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--border);
+  border-radius:8px;
+  width:36px;height:36px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:20px;color:var(--muted);
+  transition:all 0.2s;
+}
+.cart-close:hover{color:var(--text);border-color:var(--muted);}
+.cart-items{flex:1;overflow-y:auto;padding:20px 28px;}
+.cart-items::-webkit-scrollbar{width:4px;}
+.cart-items::-webkit-scrollbar-track{background:transparent;}
+.cart-items::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.cart-empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;gap:16px;color:var(--muted);
+}
+.cart-empty-icon{font-size:48px;opacity:0.4;}
+.cart-item{
+  display:flex;align-items:center;gap:16px;
+  padding:16px 0;
+  border-bottom:1px solid var(--border);
+}
+.cart-item-left{width:4px;height:48px;border-radius:2px;flex-shrink:0;}
+.cart-item-info{flex:1;}
+.cart-item-name{font-size:14px;font-weight:700;margin-bottom:4px;}
+.cart-item-price{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;}
+.cart-item-qty{display:flex;align-items:center;gap:10px;}
+.ciq-btn{
+  width:28px;height:28px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border);
+  border-radius:6px;
+  color:var(--text);font-size:16px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all 0.15s;
+}
+.ciq-btn:hover{border-color:var(--accent);color:var(--accent);}
+.ciq-btn:disabled{color:var(--muted);cursor:not-allowed;border-color:var(--border);}
+.ciq-num{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);min-width:28px;text-align:center;}
+.cart-remove{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px;transition:color 0.2s;line-height:1;}
+.cart-remove:hover{color:var(--accent2);}
+
+.cart-footer{padding:24px 28px;border-top:1px solid var(--border);flex-shrink:0;}
+.cart-summary{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
+.cart-row{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);}
+.cart-row.total{color:var(--text);font-size:15px;font-weight:700;padding-top:10px;border-top:1px solid var(--border);}
+.cart-row .row-val{font-family:'DM Mono',monospace;}
+.cart-row.total .row-val{color:var(--accent);font-size:20px;text-shadow:0 0 12px rgba(0,229,255,0.4);}
+.savings-badge{text-align:center;font-size:11px;color:var(--green);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;}
+.checkout-btn{
+  width:100%;padding:18px;
+  background:var(--accent);border:none;border-radius:14px;
+  font-family:'Syne',sans-serif;font-size:15px;font-weight:800;
+  color:#000;cursor:pointer;letter-spacing:2px;text-transform:uppercase;
+  transition:all 0.2s;box-shadow:0 4px 24px rgba(0,229,255,0.3);
+}
+.checkout-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,229,255,0.45);}
+.checkout-btn:disabled{background:#333;color:#666;box-shadow:none;cursor:not-allowed;transform:none;}
+
+.payment-modal{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:40px;
+  max-width:520px;width:100%;
+  position:relative;
+  animation:slideUp 0.3s ease;
+  max-height:92vh;
+  overflow-y:auto;
+}
+.payment-modal::-webkit-scrollbar{width:4px;}
+.payment-modal::-webkit-scrollbar-track{background:transparent;}
+.payment-modal::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.pay-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:4px;margin-bottom:4px;}
+.pay-sub{font-size:12px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;}
+.pay-section{margin-top:28px;}
+.pay-section-label{font-size:10px;letter-spacing:4px;color:var(--muted);text-transform:uppercase;margin-bottom:12px;}
+.input-group{display:flex;flex-direction:column;gap:12px;}
+.input-row{display:flex;gap:12px;}
+.input-field{
+  flex:1;
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 16px;
+  font-family:'Syne',sans-serif;
+  font-size:14px;color:var(--text);
+  outline:none;transition:border-color 0.2s;
+}
+.input-field:focus{border-color:var(--accent);}
+.input-field::placeholder{color:var(--muted);}
+
+.seller-contact-box{
+  background:rgba(0,229,255,0.05);
+  border:1px solid rgba(0,229,255,0.2);
+  border-radius:14px;
+  padding:20px 22px;
+  margin-top:28px;
+}
+.scb-title{
+  font-size:10px;letter-spacing:4px;color:var(--accent);
+  text-transform:uppercase;margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+.scb-row{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  font-size:14px;
+}
+.scb-row:last-child{border-bottom:none;padding-bottom:0;}
+.scb-icon{font-size:18px;width:24px;text-align:center;flex-shrink:0;}
+.scb-label{color:var(--muted);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-right:4px;}
+.scb-val{color:var(--text);font-family:'DM Mono',monospace;font-size:14px;}
+
+.bank-box{
+  background:rgba(0,255,170,0.05);
+  border:1px solid rgba(0,255,170,0.2);
+  border-radius:14px;
+  padding:20px 22px;
+  margin-top:16px;
+}
+.bank-box-title{
+  font-size:10px;letter-spacing:4px;color:var(--green);
+  text-transform:uppercase;margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+.bank-account{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:30px;
+  color:var(--green);
+  text-shadow:0 0 20px rgba(0,255,170,0.4);
+  letter-spacing:2px;
+  margin-bottom:4px;
+}
+.bank-note{
+  font-size:11px;color:var(--muted);letter-spacing:1px;
+  line-height:1.6;
+}
+.bank-note strong{color:var(--text);}
+
+.pay-order-summary{
+  background:rgba(0,0,0,0.3);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:16px;
+  margin-top:20px;
+}
+.pos-title{font-size:11px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:12px;}
+.pos-item{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:8px;}
+.pos-total{
+  display:flex;justify-content:space-between;
+  font-size:16px;font-weight:700;color:var(--text);
+  padding-top:12px;border-top:1px solid var(--border);margin-top:4px;
+}
+.pos-total span:last-child{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);}
+
+.confirm-btn{
+  width:100%;padding:18px;
+  background:var(--green);border:none;border-radius:14px;
+  font-family:'Syne',sans-serif;font-size:15px;font-weight:800;
+  color:#000;cursor:pointer;letter-spacing:2px;text-transform:uppercase;
+  transition:all 0.2s;box-shadow:0 4px 24px rgba(0,255,170,0.3);
+  margin-top:24px;
+}
+.confirm-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,255,170,0.45);}
+.secure-note{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:14px;font-size:11px;color:var(--muted);letter-spacing:1px;}
+
+.success-state{
+  display:none;flex-direction:column;align-items:center;
+  text-align:center;padding:20px 0;gap:16px;
+}
+.success-state.visible{display:flex;}
+.success-icon{font-size:64px;animation:pop 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.success-title{
+  font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:4px;
+  background:linear-gradient(135deg,var(--green),var(--accent));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.success-sub{font-size:14px;color:var(--muted);line-height:1.7;}
+.success-bank{
+  background:rgba(0,255,170,0.08);
+  border:1px solid rgba(0,255,170,0.25);
+  border-radius:12px;
+  padding:16px 24px;
+  text-align:center;
+}
+.success-bank-label{font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
+.success-bank-acc{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--green);letter-spacing:2px;}
+.success-bank-amt{font-family:'DM Mono',monospace;font-size:15px;color:var(--accent);margin-top:6px;}
+
+footer{
+  position:relative;z-index:1;
+  text-align:center;padding:40px 24px;
+  font-size:11px;color:#222230;
+  letter-spacing:3px;text-transform:uppercase;
+  border-top:1px solid #0e0e15;
+}
+
+@media(max-width:520px){
+  .products-grid{grid-template-columns:1fr 1fr;}
+  .hero h1{font-size:64px;}
+  .hero-stats{gap:24px;}
+  nav{padding:0 16px;}
+  .payment-modal,.product-modal{padding:28px 20px;}
+  .bank-account{font-size:22px;}
+  .input-row{flex-direction:column;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">LIQUID STORE</div>
+  <button class="cart-btn" id="cartBtn" onclick="toggleCart()">
+    <span>🛒</span>
+    <span>Košík</span>
+    <span class="cart-count" id="cartCount">0</span>
+  </button>
+</nav>
+
+<section class="hero">
+  <div class="hero-glow"></div>
+  <h1>LIQUID<br>STORE</h1>
+  <p class="hero-sub">Prémiové příchutě · Velkoobchod · Ceník 2025</p>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-val">8</div><div class="stat-lbl">Příchutí</div></div>
+    <div class="stat"><div class="stat-val">180 Kč</div><div class="stat-lbl">Cena při dohodě</div></div>
+    <div class="stat"><div class="stat-val">200 Kč</div><div class="stat-lbl">Běžná cena</div></div>
+  </div>
+</section>
+
+<section class="products-section">
+  <div class="section-title">// Vyberte příchutě</div>
+  <div class="products-grid" id="productsGrid"></div>
+</section>
+
+<div class="overlay" id="productOverlay" onclick="closeProductModal(event)">
+  <div class="product-modal" id="productModal">
+    <button class="modal-close" onclick="closeProductModalBtn()">✕</button>
+    <div class="modal-icon" id="mIcon"></div>
+    <div class="modal-name" id="mName"></div>
+    <div class="modal-sub">Cena při dohodě · 180 Kč/ks</div>
+    <div class="modal-divider"></div>
+    <div class="stock-info">📦 Skladem: <span id="mStock"></span> ks</div>
+    <div class="qty-row">
+      <span class="qty-label">Množství</span>
+      <div class="qty-controls">
+        <button class="qty-btn" id="qtyMinus" onclick="changeQty(-1)">−</button>
+        <div class="qty-display" id="mQty">1</div>
+        <button class="qty-btn" id="qtyPlus" onclick="changeQty(1)">+</button>
+      </div>
+    </div>
+    <div class="modal-price-row">
+      <div>
+        <div class="mpr-label">Celková cena</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace;">
+          Ušetříte <span id="mSave" style="color:var(--green)">20 Kč</span>
+        </div>
+      </div>
+      <div class="mpr-val" id="mTotal">180 Kč</div>
+    </div>
+    <button class="modal-add-btn" onclick="addToCartFromModal()">Přidat do košíku</button>
+  </div>
+</div>
+
+<div class="cart-panel" id="cartPanel">
+  <div class="cart-header">
+    <div class="cart-title">KOŠÍK</div>
+    <button class="cart-close" onclick="toggleCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems">
+    <div class="cart-empty">
+      <div class="cart-empty-icon">🛒</div>
+      <div>Košík je prázdný</div>
+    </div>
+  </div>
+  <div class="cart-footer">
+    <div class="cart-summary" id="cartSummary" style="display:none">
+      <div class="cart-row">
+        <span>Cena bez slevy</span>
+        <span class="row-val" id="summOriginal"></span>
+      </div>
+      <div class="cart-row">
+        <span>Sleva (dohoda)</span>
+        <span class="row-val" style="color:var(--green)" id="summSave"></span>
+      </div>
+      <div class="cart-row total">
+        <span>Celkem</span>
+        <span class="row-val" id="summTotal"></span>
+      </div>
+    </div>
+    <div class="savings-badge" id="savingsBadge" style="display:none">🎉 UŠETŘÍTE <span id="savedAmt"></span></div>
+    <button class="checkout-btn" id="checkoutBtn" onclick="openPayment()" disabled>OBJEDNAT</button>
+  </div>
+</div>
+
+<div class="overlay" id="paymentOverlay" onclick="closePaymentModal(event)">
+  <div class="payment-modal" id="paymentModal">
+    <button class="modal-close" onclick="closePaymentModalBtn()">✕</button>
+
+    <div id="paymentForm">
+      <div class="pay-title">OBJEDNÁVKA</div>
+      <div class="pay-sub">Vyplňte kontaktní údaje · Platba převodem</div>
+
+      <div class="pay-section">
+        <div class="pay-section-label">// Vaše kontaktní údaje</div>
+        <div class="input-group">
+          <div class="input-row">
+            <input class="input-field" type="text" placeholder="Jméno" id="payName"/>
+            <input class="input-field" type="text" placeholder="Příjmení" id="payLastName"/>
+          </div>
+          <input class="input-field" type="email" placeholder="E-mail" id="payEmail"/>
+          <input class="input-field" type="tel" placeholder="Telefon" id="payPhone"/>
+        </div>
+      </div>
+
+      <div class="seller-contact-box">
+        <div class="scb-title">📞 Kontakt prodávajícího</div>
+        <div class="scb-row">
+          <div class="scb-icon">📱</div>
+          <div><span class="scb-label">Telefon</span></div>
+          <div class="scb-val">731 416 688</div>
+        </div>
+        <div class="scb-row">
+          <div class="scb-icon">✉️</div>
+          <div><span class="scb-label">E-mail</span></div>
+          <div class="scb-val">maxdominik6@gmail.com</div>
+        </div>
+      </div>
+
+      <div class="bank-box">
+        <div class="bank-box-title">🏦 Platba bankovním převodem</div>
+        <div class="bank-account">670100-2230387799/6210</div>
+        <div class="bank-note">
+          Po potvrzení objednávky prosím zašlete platbu na výše uvedený účet.<br>
+          <strong>Do poznámky uveďte své jméno a příjmení.</strong><br>
+          Po přijetí platby vás budeme kontaktovat.
+        </div>
+      </div>
+
+      <div class="pay-order-summary" id="payOrderSummary"></div>
+
+      <button class="confirm-btn" id="confirmBtn" onclick="processOrder()">
+        POTVRDIT OBJEDNÁVKU · <span id="payBtnAmt"></span>
+      </button>
+      <div class="secure-note">🔒 Vaše údaje jsou v bezpečí · Platba převodem</div>
+    </div>
+
+    <div class="success-state" id="successState">
+      <div class="success-icon">✅</div>
+      <div class="success-title">OBJEDNÁVKA PŘIJATA!</div>
+      <div class="success-sub">Děkujeme za objednávku.<br>Kontaktujte prodávajícího pro dokončení.</div>
+      <div class="success-bank">
+        <div class="success-bank-label">Zašlete platbu na účet</div>
+        <div class="success-bank-acc">670100-2230387799/6210</div>
+        <div class="success-bank-amt" id="successAmt"></div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);text-align:center;line-height:1.7;margin-top:4px;">
+        📱 <strong style="color:var(--text)">731 416 688</strong><br>
+        ✉️ <strong style="color:var(--text)">maxdominik6@gmail.com</strong>
+      </div>
+      <button class="modal-add-btn" style="margin-top:8px;width:100%;max-width:300px" onclick="resetAll()">
+        Zpět do obchodu
+      </button>
+    </div>
+  </div>
+</div>
+
+<footer>LIQUID STORE · Ceník 2025 · 8 příchutí · Platba převodem</footer>
+
+<script>
+const PRODUCTS = [
+  {id:1, name:"Redbull",               icon:"⚡", color:"#ff6b00", stock:20},
+  {id:2, name:"Juicy & Peach",         icon:"🍑", color:"#ffcc00", stock:10},
+  {id:3, name:"Strawberry & Raspberry",icon:"🍓", color:"#ff4488", stock:10},
+  {id:4, name:"Strawberry & Kiwi",     icon:"🥝", color:"#00cc66", stock:20},
+  {id:5, name:"Cherry Cola",           icon:"🍒", color:"#cc2222", stock:20},
+  {id:6, name:"Mentol",                icon:"🌿", color:"#00ffcc", stock:10},
+  {id:7, name:"Blueberry & Melon",     icon:"🫐", color:"#6644ff", stock:10},
+  {id:8, name:"Blueberry & Ice",       icon:"❄️", color:"#4499ff", stock:10},
+];
+const PRICE_NORMAL = 200;
+const PRICE_DEAL   = 180;
+
+let cart = {};
+let currentProduct = null;
+let currentQty = 1;
+let cartOpen = false;
+
+function availableStock(productId) {
+  const p = PRODUCTS.find(x => x.id === productId);
+  const inCart = cart[productId] || 0;
+  return p.stock - inCart;
+}
+
+function renderProducts(){
+  const grid = document.getElementById('productsGrid');
+  grid.innerHTML = PRODUCTS.map(p => {
+    const avail = availableStock(p.id);
+    const outOfStock = avail <= 0;
+    const lowStock = avail > 0 && avail <= 3;
+    const stockClass = outOfStock ? 'out' : (lowStock ? 'low' : '');
+    const stockText = outOfStock ? 'Vyprodáno' : (avail + ' ks');
+    return `
+    <div class="product-card" style="--card-color:${p.color}" onclick="${outOfStock ? '' : 'openProductModal('+p.id+')'}">
+      <div class="card-top">
+        <div class="card-icon">${p.icon}</div>
+        <div class="card-stock ${stockClass}">${stockText}</div>
+      </div>
+      <div class="card-name">${p.name}</div>
+      <div class="card-bottom">
+        <div class="card-price">
+          <div class="price-orig">${PRICE_NORMAL} Kč/ks</div>
+          <div class="price-deal">${PRICE_DEAL} Kč/ks</div>
+        </div>
+        <button class="add-btn" ${outOfStock ? 'disabled' : ''} onclick="event.stopPropagation();${outOfStock ? '' : 'openProductModal('+p.id+')'}">
+          ${outOfStock ? 'VYPRODÁNO' : 'VYBRAT'}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openProductModal(id){
+  currentProduct = PRODUCTS.find(p => p.id === id);
+  currentQty = 1;
+  updateModal();
+  document.getElementById('productOverlay').classList.add('active');
+}
+
+function updateModal(){
+  const avail = availableStock(currentProduct.id);
+  document.getElementById('mIcon').textContent = currentProduct.icon;
+  document.getElementById('mName').textContent = currentProduct.name;
+  document.getElementById('mStock').textContent = avail;
+  document.getElementById('mQty').textContent = currentQty;
+  document.getElementById('mTotal').textContent = (PRICE_DEAL * currentQty) + ' Kč';
+  document.getElementById('mSave').textContent = ((PRICE_NORMAL - PRICE_DEAL) * currentQty) + ' Kč';
+  document.getElementById('qtyMinus').disabled = currentQty <= 1;
+  document.getElementById('qtyPlus').disabled = currentQty >= avail;
+}
+
+function changeQty(d){
+  const avail = availableStock(currentProduct.id);
+  currentQty = Math.max(1, Math.min(avail, currentQty + d));
+  updateModal();
+}
+
+function closeProductModal(e){
+  if(e.target === document.getElementById('productOverlay'))
+    document.getElementById('productOverlay').classList.remove('active');
+}
+function closeProductModalBtn(){
+  document.getElementById('productOverlay').classList.remove('active');
+}
+function addToCartFromModal(){
+  const id = currentProduct.id;
+  const avail = availableStock(id);
+  const toAdd = Math.min(currentQty, avail);
+  if(toAdd <= 0) return;
+  cart[id] = (cart[id] || 0) + toAdd;
+  document.getElementById('productOverlay').classList.remove('active');
+  updateCartUI();
+  renderProducts();
+  bumpCount();
+}
+
+function toggleCart(){
+  cartOpen = !cartOpen;
+  document.getElementById('cartPanel').classList.toggle('open', cartOpen);
+}
+function bumpCount(){
+  const el = document.getElementById('cartCount');
+  el.classList.remove('bump');
+  void el.offsetWidth;
+  el.classList.add('bump');
+  setTimeout(() => el.classList.remove('bump'), 300);
+}
+
+function updateCartUI(){
+  const items = Object.entries(cart).filter(([,v]) => v > 0);
+  const totalQty = items.reduce((s,[,v]) => s + v, 0);
+  const totalDeal = items.reduce((s,[,v]) => s + v * PRICE_DEAL, 0);
+  const totalNorm = items.reduce((s,[,v]) => s + v * PRICE_NORMAL, 0);
+  const saved = totalNorm - totalDeal;
+
+  document.getElementById('cartCount').textContent = totalQty;
+
+  const container = document.getElementById('cartItems');
+  if(items.length === 0){
+    container.innerHTML = `<div class="cart-empty"><div class="cart-empty-icon">🛒</div><div>Košík je prázdný</div></div>`;
+    document.getElementById('cartSummary').style.display = 'none';
+    document.getElementById('savingsBadge').style.display = 'none';
+    document.getElementById('checkoutBtn').disabled = true;
+    return;
+  }
+
+  container.innerHTML = items.map(([id, qty]) => {
+    const p = PRODUCTS.find(x => x.id == id);
+    const totalAvail = p.stock;
+    const canAdd = qty < totalAvail;
+    return `
+    <div class="cart-item">
+      <div class="cart-item-left" style="background:${p.color};box-shadow:0 0 8px ${p.color}"></div>
+      <div class="cart-item-info">
+        <div class="cart-item-name">${p.icon} ${p.name}</div>
+        <div class="cart-item-price">${qty}× ${PRICE_DEAL} Kč = ${qty * PRICE_DEAL} Kč</div>
+      </div>
+      <div class="cart-item-qty">
+        <button class="ciq-btn" onclick="updateCartQty(${id},-1)">−</button>
+        <div class="ciq-num">${qty}</div>
+        <button class="ciq-btn" ${!canAdd ? 'disabled' : ''} onclick="updateCartQty(${id},1)">+</button>
+      </div>
+      <button class="cart-remove" onclick="removeFromCart(${id})">✕</button>
+    </div>`;
+  }).join('');
+
+  document.getElementById('cartSummary').style.display = 'flex';
+  document.getElementById('summOriginal').textContent = totalNorm + ' Kč';
+  document.getElementById('summSave').textContent = '−' + saved + ' Kč';
+  document.getElementById('summTotal').textContent = totalDeal + ' Kč';
+  document.getElementById('savingsBadge').style.display = 'block';
+  document.getElementById('savedAmt').textContent = saved + ' Kč';
+  document.getElementById('checkoutBtn').disabled = false;
+
+  renderPayOrderSummary();
+  document.getElementById('payBtnAmt').textContent = totalDeal + ' Kč';
+  document.getElementById('successAmt').textContent = totalDeal + ' Kč';
+}
+
+function updateCartQty(id, d){
+  const p = PRODUCTS.find(x => x.id == id);
+  const newQty = (cart[id] || 0) + d;
+  if(newQty <= 0){
+    delete cart[id];
+  } else {
+    cart[id] = Math.min(newQty, p.stock);
+  }
+  updateCartUI();
+  renderProducts();
+}
+function removeFromCart(id){
+  delete cart[id];
+  updateCartUI();
+  renderProducts();
+}
+
+function openPayment(){
+  cartOpen = false;
+  document.getElementById('cartPanel').classList.remove('open');
+  document.getElementById('paymentOverlay').classList.add('active');
+  renderPayOrderSummary();
+
+  const items = Object.entries(cart).filter(([,v]) => v > 0);
+  const totalDeal = items.reduce((s,[,v]) => s + v * PRICE_DEAL, 0);
+  document.getElementById('payBtnAmt').textContent = totalDeal + ' Kč';
+  document.getElementById('successAmt').textContent = totalDeal + ' Kč';
+}
+
+function renderPayOrderSummary(){
+  const items = Object.entries(cart).filter(([,v]) => v > 0);
+  const totalDeal = items.reduce((s,[,v]) => s + v * PRICE_DEAL, 0);
+  const html = items.map(([id, qty]) => {
+    const p = PRODUCTS.find(x => x.id == id);
+    return `<div class="pos-item"><span>${p.icon} ${p.name} ×${qty}</span><span>${qty * PRICE_DEAL} Kč</span></div>`;
+  }).join('');
+  document.getElementById('payOrderSummary').innerHTML =
+    `<div class="pos-title">// Souhrn objednávky</div>${html}
+     <div class="pos-total"><span>Celkem k platbě</span><span>${totalDeal} Kč</span></div>`;
+}
+
+function closePaymentModal(e){
+  if(e.target === document.getElementById('paymentOverlay'))
+    document.getElementById('paymentOverlay').classList.remove('active');
+}
+function closePaymentModalBtn(){
+  document.getElementById('paymentOverlay').classList.remove('active');
+}
+
+function processOrder(){
+  const name = document.getElementById('payName').value.trim();
+  const lastName = document.getElementById('payLastName').value.trim();
+  const email = document.getElementById('payEmail').value.trim();
+  const phone = document.getElementById('payPhone').value.trim();
+
+  if(!name){ alert('Zadejte jméno.'); return; }
+  if(!lastName){ alert('Zadejte příjmení.'); return; }
+  if(!email || !email.includes('@')){ alert('Zadejte platný e-mail.'); return; }
+  if(!phone){ alert('Zadejte telefon.'); return; }
+
+  const btn = document.getElementById('confirmBtn');
+  btn.textContent = 'Zpracování...';
+  btn.disabled = true;
+
+  setTimeout(() => {
+    document.getElementById('paymentForm').style.display = 'none';
+    document.getElementById('successState').classList.add('visible');
+  }, 800);
+}
+
+function resetAll(){
+  cart = {};
+  updateCartUI();
+  renderProducts();
+  document.getElementById('paymentOverlay').classList.remove('active');
+  document.getElementById('paymentForm').style.display = 'block';
+  document.getElementById('successState').classList.remove('visible');
+  const btn = document.getElementById('confirmBtn');
+  btn.textContent = 'POTVRDIT OBJEDNÁVKU · ';
+  btn.disabled = false;
+  document.getElementById('payName').value = '';
+  document.getElementById('payLastName').value = '';
+  document.getElementById('payEmail').value = '';
+  document.getElementById('payPhone').value = '';
+}
+
+renderProducts();
+</script>
+</body>
+</html>
